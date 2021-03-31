@@ -6,57 +6,10 @@ from django.http import Http404, HttpResponseRedirect
 from collections import Counter
 from django.urls import reverse
 from . import views
-from django.contrib.auth import login, logout, authenticate
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
-from django.db.models import Count
+
 from django.shortcuts import get_object_or_404, render, redirect
-from .forms import LoginForm, RegistrationForm
 
-def log_out(request):
-    logout(request)
-    redirect_url = request.GET.get('next') or reverse('index')
-    return redirect(redirect_url)
 
-def log_in(request):
-    if request.method == 'POST':
-        logout(request)
-        form = LoginForm(request.POST)
-        if form.is_valid():
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                login(request, user)
-                return redirect(request.GET['next'])
-            else:
-                form.add_error('Invalid credentials!')
-    else: # GET
-        form = LoginForm()
-    return render(request, 'helloworld/login.html', {'form': form})
-def sign_up(request):
-    if request.method == 'POST':
-        form = RegistrationForm(request.POST)
-        if form.is_valid():
-            logout(request)
-            #blog_title = form.cleaned_data['blog_title']
-            username = form.cleaned_data['username']
-            email = form.cleaned_data['email']
-            password = form.cleaned_data['password']
-            password_again = form.cleaned_data['password_again']
-            if User.objects.filter(username=username).exists():
-                form.add_error('username', 'User already exists!')
-            elif password != password_again:
-                form.add_error('password_again', 'Passwords mismatch!')
-            else:
-                user = User.objects.create_user(username, email, password)
-                #blog = Blog.objects.create(author=user, title=blog_title)
-                login(request, user)
-                #context = {'blog': blog, 'posts': []}
-                return render(request, 'helloworld/index.html')
-    else: # GET
-        form = RegistrationForm()
-    return render(request, 'helloworld/signup.html', {'form': form})
 def index(request):
     appid = 'b3059499f68247e4e31a88d7c9511698'
     url = 'https://api.openweathermap.org/data/2.5/weather?q={}&units=metric&appid=' + appid
